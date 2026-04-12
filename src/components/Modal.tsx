@@ -9,7 +9,7 @@ type ModalProps = PropsWithChildren<{
   size?: 'normal' | 'wide';
 }>;
 
-const focusableSelector =
+const FOCUSABLE_SELECTOR =
   'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
 export function Modal({ children, title, isOpen, onClose, footer, size = 'normal' }: ModalProps) {
@@ -28,7 +28,7 @@ export function Modal({ children, title, isOpen, onClose, footer, size = 'normal
 
     const previousActiveElement = document.activeElement as HTMLElement | null;
     const dialogElement = dialogRef.current;
-    const focusable = dialogElement?.querySelectorAll<HTMLElement>(focusableSelector) ?? [];
+    const focusable = dialogElement?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR) ?? [];
     focusable[0]?.focus();
 
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -81,7 +81,7 @@ export function Modal({ children, title, isOpen, onClose, footer, size = 'normal
             <h2 id={titleId}>{title}</h2>
           </div>
           <button type="button" className="icon-button" onClick={onClose} aria-label="Close modal">
-            ×
+            x
           </button>
         </div>
         <div className="modal-body">{children}</div>

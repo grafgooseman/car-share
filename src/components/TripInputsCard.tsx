@@ -1,17 +1,23 @@
-import type { ChangeEvent } from 'react';
-import type { TripInputs } from '../types';
+import type { TripInputDraft } from '../types';
 
 type TripInputsCardProps = {
-  inputs: TripInputs;
-  onChange: (field: keyof TripInputs, value: number) => void;
+  inputs: TripInputDraft;
+  maxPersonsInCar: number;
+  onChange: (field: keyof TripInputDraft, value: string) => void;
 };
 
-const parseFieldValue = (event: ChangeEvent<HTMLInputElement>) => {
-  const next = Number(event.target.value);
-  return Number.isFinite(next) ? next : 0;
+const MAX_KILOMETER_SLIDER = 500;
+
+const getSliderValue = (value: string) => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(parsed, MAX_KILOMETER_SLIDER));
 };
 
-export function TripInputsCard({ inputs, onChange }: TripInputsCardProps) {
+export function TripInputsCard({ inputs, maxPersonsInCar, onChange }: TripInputsCardProps) {
   return (
     <section className="panel-card">
       <div className="section-heading">
@@ -21,39 +27,57 @@ export function TripInputsCard({ inputs, onChange }: TripInputsCardProps) {
         </div>
       </div>
       <div className="input-grid">
-        <label className="field">
+        <div className="field field--wide">
           <span>Kilometers</span>
-          <input
-            aria-label="Kilometers"
-            type="number"
-            min="0"
-            step="0.1"
-            value={inputs.kilometers}
-            onChange={(event) => onChange('kilometers', parseFieldValue(event))}
-          />
-        </label>
+          <div className="slider-field">
+            <input
+              aria-label="Kilometers slider"
+              className="slider-input"
+              type="range"
+              min="0"
+              max={String(MAX_KILOMETER_SLIDER)}
+              step="10"
+              value={String(getSliderValue(inputs.kilometers))}
+              onChange={(event) => onChange('kilometers', event.target.value)}
+            />
+            <input
+              aria-label="Kilometers"
+              type="number"
+              inputMode="decimal"
+              step="0.1"
+              value={inputs.kilometers}
+              onChange={(event) => onChange('kilometers', event.target.value)}
+            />
+          </div>
+        </div>
         <label className="field">
           <span>Days</span>
           <input
             aria-label="Days"
             type="number"
-            min="0"
+            inputMode="decimal"
             step="0.1"
             value={inputs.days}
-            onChange={(event) => onChange('days', parseFieldValue(event))}
+            onChange={(event) => onChange('days', event.target.value)}
           />
         </label>
         <label className="field">
           <span>Persons in car</span>
-          <input
+          <select
             aria-label="Persons in car"
-            type="number"
-            min="1"
-            max="5"
-            step="1"
             value={inputs.personsInCar}
-            onChange={(event) => onChange('personsInCar', parseFieldValue(event))}
-          />
+            onChange={(event) => onChange('personsInCar', event.target.value)}
+          >
+            {Array.from({ length: maxPersonsInCar }, (_, index) => {
+              const value = String(index + 1);
+
+              return (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              );
+            })}
+          </select>
           <small>Including driver</small>
         </label>
       </div>

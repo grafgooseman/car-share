@@ -1,61 +1,14 @@
-import type { CostConstants, ExplainItem } from '../types';
+import type { AppSettingKey, ExplainItem, ExplainKey, SettingsSnapshot } from '../types';
 
-export const getExplainItems = (_constants: CostConstants): ExplainItem[] => [
-  {
-    key: 'carName',
-    label: 'Car model',
-    description: 'The calculator is configured for this specific car and its operating costs.',
-  },
-  {
-    key: 'gasPer100Km',
-    label: 'Gas / 100 km',
-    description: 'Fuel consumption baseline taken from the car specification in the spreadsheet.',
-    unit: 'L',
-  },
-  {
-    key: 'gasPricePerLiter',
-    label: 'Gas price / L',
-    description: 'Current gas price used as the fuel input for the trip.',
-    unit: 'CA$',
-  },
-  {
+const DERIVED_EXPLAIN_ITEMS: Record<'gasCostPerKm' | 'totalCostPerKm' | 'costPerPerson', ExplainItem> = {
+  gasCostPerKm: {
     key: 'gasCostPerKm',
-    label: 'Gas price / km',
+    label: 'Gas cost / km',
     description: 'This converts fuel consumption and gas price into a per-kilometer fuel cost.',
-    formula: 'gasPricePerLiter × gasPer100Km ÷ 100',
+    formula: 'gasPricePerLiter * gasPer100Km / 100',
     unit: 'CA$',
   },
-  {
-    key: 'insurancePerKm',
-    label: 'Insurance / km',
-    description: 'Fixed insurance allocation charged for each kilometer driven.',
-    unit: 'CA$',
-  },
-  {
-    key: 'parkingPerDay',
-    label: 'Parking / day',
-    description: 'Flat daily parking amount carried over from the spreadsheet.',
-    unit: 'CA$',
-  },
-  {
-    key: 'depreciationPerKm',
-    label: 'Depreciation / km',
-    description: 'Wear on the car value attributed to each kilometer.',
-    unit: 'CA$',
-  },
-  {
-    key: 'maintenancePerKm',
-    label: 'Maintenance + tire wear / km',
-    description: 'Routine maintenance and tire usage distributed across distance driven.',
-    unit: 'CA$',
-  },
-  {
-    key: 'riskPerKm',
-    label: 'Risk / km',
-    description: 'Allowance for collision, towing, tickets, small damage, or cleaning risk.',
-    unit: 'CA$',
-  },
-  {
+  totalCostPerKm: {
     key: 'totalCostPerKm',
     label: 'Total cost / km',
     description: 'The combined driving cost per kilometer before parking is added.',
@@ -63,11 +16,38 @@ export const getExplainItems = (_constants: CostConstants): ExplainItem[] => [
       'gasCostPerKm + insurancePerKm + depreciationPerKm + maintenancePerKm + riskPerKm',
     unit: 'CA$',
   },
-  {
+  costPerPerson: {
     key: 'costPerPerson',
     label: 'Cost per person',
     description: 'Final shared amount, rounded up to the next whole Canadian dollar.',
-    formula: 'ceil((totalCostPerKm × kilometers + parkingPerDay × days) ÷ personsInCar)',
+    formula: 'ceil((totalCostPerKm * kilometers + parkingPerDay * days) / personsInCar)',
     unit: 'CA$',
   },
-];
+};
+
+export const getExplainItem = (
+  explainKey: ExplainKey | null,
+  settingsSnapshot: SettingsSnapshot,
+): ExplainItem | null => {
+  if (!explainKey) {
+    return null;
+  }
+
+  if (explainKey in DERIVED_EXPLAIN_ITEMS) {
+    return DERIVED_EXPLAIN_ITEMS[explainKey as keyof typeof DERIVED_EXPLAIN_ITEMS];
+  }
+
+  const setting = settingsSnapshot.settingsByKey[explainKey as AppSettingKey];
+  if (!setting) {
+    return null;
+  }
+
+  return {
+    key: explainKey,
+    label: setting.label,
+    description: setting.helpText,
+    rationale: setting.rationale,
+    sourceNote: setting.sourceNote ?? undefined,
+    unit: setting.unit || undefined,
+  };
+};

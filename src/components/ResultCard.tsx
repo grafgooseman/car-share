@@ -37,9 +37,7 @@ export function ResultCard({ derived, inputs }: ResultCardProps) {
           </div>
         </dl>
       </div>
-      <p className="formula-line">
-        Formula: ceil((total cost/km × km + parking/day × days) ÷ persons in car)
-      </p>
+      <p className="formula-line">Formula: ceil((total cost/km * km + parking/day * days) / persons in car)</p>
     </section>
   );
 }

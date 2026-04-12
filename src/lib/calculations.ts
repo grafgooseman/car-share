@@ -1,5 +1,4 @@
 import type { CostConstants, DerivedCosts, TripInputs } from '../types';
-import { MAX_PERSONS } from './defaults';
 
 const clampNumber = (value: number, min: number, max?: number) => {
   const safeValue = Number.isFinite(value) ? value : min;
@@ -7,17 +6,17 @@ const clampNumber = (value: number, min: number, max?: number) => {
   return max === undefined ? clamped : Math.min(max, clamped);
 };
 
-export const sanitizeTripInputs = (inputs: Partial<TripInputs>): TripInputs => ({
+export const sanitizeTripInputs = (inputs: Partial<TripInputs>, maxPersonsInCar: number): TripInputs => ({
   kilometers: clampNumber(inputs.kilometers ?? 0, 0),
   days: clampNumber(inputs.days ?? 0, 0),
-  personsInCar: Math.round(clampNumber(inputs.personsInCar ?? 1, 1, MAX_PERSONS)),
+  personsInCar: Math.round(clampNumber(inputs.personsInCar ?? 1, 1, maxPersonsInCar)),
 });
 
 export const calculateDerivedCosts = (
   rawInputs: TripInputs,
   constants: CostConstants,
 ): DerivedCosts => {
-  const inputs = sanitizeTripInputs(rawInputs);
+  const inputs = rawInputs;
   const gasCostPerKm = (constants.gasPricePerLiter * constants.gasPer100Km) / 100;
   const totalCostPerKm =
     gasCostPerKm +

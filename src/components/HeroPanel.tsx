@@ -21,9 +21,24 @@ export function HeroPanel({ carName, imageSrc, riskImageSrc }: HeroPanelProps) {
         </div>
       </div>
       <div className="hero-visual">
-        <img className="hero-car-image" src={imageSrc} alt={carName} />
+        <img
+          className="hero-car-image"
+          src={imageSrc}
+          alt={carName}
+          width={960}
+          height={640}
+          decoding="async"
+          fetchPriority="high"
+        />
         <div className="risk-note">
-          <img src={riskImageSrc} alt="Example of why a risk cost is included" />
+          <img
+            src={riskImageSrc}
+            alt="Example of why a risk cost is included"
+            width={320}
+            height={213}
+            loading="lazy"
+            decoding="async"
+          />
           <div>
             <strong>Risk coverage matters</strong>
             <p>Small damage, towing, and cleanup are already built into the cost per km.</p>

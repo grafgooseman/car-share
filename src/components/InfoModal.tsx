@@ -1,28 +1,25 @@
-import { getExplainItems } from '../lib/explain';
-import { formatCurrency, formatNumber } from '../lib/format';
-import type { CostConstants, DerivedCosts, ExplainKey } from '../types';
+import { getExplainItem } from '../lib/explain';
+import { formatCurrency } from '../lib/format';
+import { formatAppSettingValue } from '../lib/settings';
+import type { DerivedCosts, ExplainKey, SettingsSnapshot } from '../types';
 import { Modal } from './Modal';
 
 type InfoModalProps = {
   isOpen: boolean;
   explainKey: ExplainKey | null;
-  constants: CostConstants;
+  settingsSnapshot: SettingsSnapshot;
   derived: DerivedCosts;
   onClose: () => void;
 };
 
-const getCurrentValue = (key: ExplainKey, constants: CostConstants, derived: DerivedCosts) => {
-  if (key in constants) {
-    const constantValue = constants[key as keyof CostConstants];
-    if (typeof constantValue === 'string') {
-      return constantValue;
-    }
-
-    if (key === 'gasPer100Km') {
-      return `${formatNumber(constantValue, 1)} L / 100 km`;
-    }
-
-    return formatCurrency(constantValue, key === 'maintenancePerKm' ? 3 : 2);
+const getCurrentValue = (
+  key: ExplainKey,
+  settingsSnapshot: SettingsSnapshot,
+  derived: DerivedCosts,
+) => {
+  const setting = settingsSnapshot.settingsByKey[key as keyof typeof settingsSnapshot.settingsByKey];
+  if (setting) {
+    return formatAppSettingValue(setting);
   }
 
   if (key === 'costPerPerson') {
@@ -36,8 +33,8 @@ const getCurrentValue = (key: ExplainKey, constants: CostConstants, derived: Der
   return formatCurrency(derived.totalCostPerKm, 5);
 };
 
-export function InfoModal({ isOpen, explainKey, constants, derived, onClose }: InfoModalProps) {
-  const item = getExplainItems(constants).find((entry) => entry.key === explainKey);
+export function InfoModal({ isOpen, explainKey, settingsSnapshot, derived, onClose }: InfoModalProps) {
+  const item = getExplainItem(explainKey, settingsSnapshot);
 
   if (!item || !explainKey) {
     return null;
@@ -64,11 +61,15 @@ export function InfoModal({ isOpen, explainKey, constants, derived, onClose }: I
         ) : null}
         <div className="value-box">
           <span>Current value</span>
-          <strong>{getCurrentValue(explainKey, constants, derived)}</strong>
+          <strong>{getCurrentValue(explainKey, settingsSnapshot, derived)}</strong>
         </div>
-        {explainKey === 'gasPer100Km' ? (
-          <p className="support-note">Spreadsheet value: {formatNumber(constants.gasPer100Km, 1)} L / 100 km</p>
+        {item.rationale ? (
+          <div className="value-box">
+            <span>Why this value</span>
+            <strong>{item.rationale}</strong>
+          </div>
         ) : null}
+        {item.sourceNote ? <p className="support-note">Source note: {item.sourceNote}</p> : null}
       </div>
     </Modal>
   );

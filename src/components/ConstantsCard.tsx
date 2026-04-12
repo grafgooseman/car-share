@@ -1,34 +1,25 @@
-import { CONSTANT_FIELDS } from '../lib/defaults';
-import { formatCurrency, formatNumber } from '../lib/format';
-import type { ConstantField, CostConstants, DerivedCosts, ExplainKey } from '../types';
+import { formatCurrency } from '../lib/format';
+import { formatAppSettingValue } from '../lib/settings';
+import type { AppSetting, DerivedCosts, ExplainKey } from '../types';
 
 type ConstantsCardProps = {
-  constants: CostConstants;
+  settings: AppSetting[];
   derived: DerivedCosts;
   onExplain: (key: ExplainKey) => void;
   onRequestEdit: () => void;
+  onSignOut: () => void;
   editorName: string;
-};
-
-const renderFieldValue = (field: ConstantField, constants: CostConstants) => {
-  const value = constants[field.key];
-  if (typeof value === 'string') {
-    return value;
-  }
-
-  if (field.unit === 'CA$') {
-    return formatCurrency(value, field.decimals);
-  }
-
-  return `${formatNumber(value, field.decimals)} ${field.unit}`.trim();
+  isAdmin: boolean;
 };
 
 export function ConstantsCard({
-  constants,
+  settings,
   derived,
   onExplain,
   onRequestEdit,
+  onSignOut,
   editorName,
+  isAdmin,
 }: ConstantsCardProps) {
   return (
     <section className="panel-card">
@@ -39,25 +30,30 @@ export function ConstantsCard({
         </div>
         <div className="section-actions">
           {editorName ? <span className="editor-pill">Editing as {editorName}</span> : null}
+          {isAdmin ? (
+            <button type="button" className="secondary-button" onClick={onSignOut}>
+              Sign out
+            </button>
+          ) : null}
           <button type="button" className="secondary-button" onClick={onRequestEdit}>
             Edit constants
           </button>
         </div>
       </div>
       <div className="constants-grid">
-        {CONSTANT_FIELDS.map((field) => (
+        {settings.map((setting) => (
           <button
-            key={field.key}
+            key={setting.key}
             type="button"
             className="constant-row"
-            onClick={() => onExplain(field.key)}
+            onClick={() => onExplain(setting.key)}
           >
             <div>
-              <span className="constant-label">{field.label}</span>
-              <span className="constant-unit">{field.unit || 'Details'}</span>
+              <span className="constant-label">{setting.label}</span>
+              <span className="constant-unit">{setting.unit || 'Details'}</span>
             </div>
             <div className="constant-value-wrap">
-              <span className="constant-value">{renderFieldValue(field, constants)}</span>
+              <span className="constant-value">{formatAppSettingValue(setting)}</span>
               <span className="constant-link">How it works</span>
             </div>
           </button>
