@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.DS_Store
+app-temp/
+react-temp/
+sheet_xlsx/
+sheet.ods
+sheet.xlsx
+sheet.zip
