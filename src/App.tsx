@@ -368,6 +368,7 @@ function App() {
         constants={settingsSnapshot.constants}
         constantSettings={settingsSnapshot.publicConstantSettings}
         derived={derived}
+        heroContent={settingsSnapshot.heroContent}
         inputDraft={inputDraft}
         inputs={sanitizedInputs}
         maxPersonsInCar={settingsSnapshot.maxPersonsInCar}

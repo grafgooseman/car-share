@@ -6,6 +6,8 @@ describe('createSettingsSnapshot', () => {
     const snapshot = createSettingsSnapshot(seededAppSettings);
 
     expect(snapshot.constants.carName).toBe('Honda Civic Sedan 2012');
+    expect(snapshot.heroContent.eyebrow).toBe('Trip Cost Splitter');
+    expect(snapshot.heroContent.riskTitle).toBe('Risk coverage matters');
     expect(snapshot.constants.gasPricePerLiter).toBe(1.78);
     expect(snapshot.maxPersonsInCar).toBe(5);
     expect(snapshot.tripDefaults).toEqual({

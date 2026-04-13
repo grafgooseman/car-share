@@ -1,22 +1,23 @@
+import type { HeroContent } from '../types';
+
 type HeroPanelProps = {
   carName: string;
+  content: HeroContent;
   imageSrc: string;
   riskImageSrc: string;
 };
 
-export function HeroPanel({ carName, imageSrc, riskImageSrc }: HeroPanelProps) {
+export function HeroPanel({ carName, content, imageSrc, riskImageSrc }: HeroPanelProps) {
   return (
     <section className="hero-panel">
       <div className="hero-copy">
-        <p className="eyebrow">Trip Cost Splitter</p>
+        <p className="eyebrow">{content.eyebrow}</p>
         <h1>{carName}</h1>
-        <p className="hero-text">
-          A clean way to calculate who owes what for a trip.
-        </p>
+        <p className="hero-text">{content.description}</p>
         <div className="hero-badges">
-          <span>Fuel + insurance + maintenance</span>
-          <span>Risks included</span>
-          <span>Rounded up to the nearest dollar</span>
+          <span>{content.badgePrimary}</span>
+          <span>{content.badgeSecondary}</span>
+          <span>{content.badgeTertiary}</span>
         </div>
       </div>
       <div className="hero-visual">
@@ -39,8 +40,8 @@ export function HeroPanel({ carName, imageSrc, riskImageSrc }: HeroPanelProps) {
             decoding="async"
           />
           <div>
-            <strong>Risk coverage matters</strong>
-            <p>Small damage, towing, and cleanup are already built into the cost per km.</p>
+            <strong>{content.riskTitle}</strong>
+            <p>{content.riskBody}</p>
           </div>
         </div>
       </div>

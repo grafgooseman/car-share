@@ -1,5 +1,10 @@
 import type { FormEvent } from 'react';
-import { applyDraftsToSettings, formatAppSettingValue, groupSettingDrafts } from '../lib/settings';
+import {
+  applyDraftsToSettings,
+  createSettingsSnapshot,
+  formatAppSettingValue,
+  groupSettingDrafts,
+} from '../lib/settings';
 import { calculateDerivedCosts } from '../lib/calculations';
 import { formatCurrency } from '../lib/format';
 import type { AppSettingDraft, SettingsSnapshot, TripInputs } from '../types';
@@ -24,6 +29,7 @@ type EditSettingsModalProps = {
 
 const GROUP_TITLES: Record<string, string> = {
   costs: 'Cost settings',
+  hero: 'Hero content',
   trip_defaults: 'Trip defaults',
   trip_rules: 'Trip rules',
 };
@@ -45,14 +51,7 @@ export function EditSettingsModal({
 
   try {
     const previewSettings = applyDraftsToSettings(draftSettings, settingsSnapshot.settingsByKey);
-    previewSnapshot = {
-      ...settingsSnapshot,
-      settings: previewSettings,
-      settingsByKey: previewSettings.reduce<typeof settingsSnapshot.settingsByKey>((accumulator, setting) => {
-        accumulator[setting.key] = setting;
-        return accumulator;
-      }, { ...settingsSnapshot.settingsByKey }),
-    };
+    previewSnapshot = createSettingsSnapshot(previewSettings);
   } catch {
     previewSnapshot = settingsSnapshot;
   }

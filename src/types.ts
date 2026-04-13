@@ -21,6 +21,16 @@ export type CostConstants = {
   riskPerKm: number;
 };
 
+export type HeroContent = {
+  eyebrow: string;
+  description: string;
+  badgePrimary: string;
+  badgeSecondary: string;
+  badgeTertiary: string;
+  riskTitle: string;
+  riskBody: string;
+};
+
 export type DerivedCosts = {
   gasCostPerKm: number;
   totalCostPerKm: number;
@@ -30,6 +40,7 @@ export type DerivedCosts = {
 
 export type AppSettingKey =
   | keyof CostConstants
+  | keyof HeroContent
   | 'maxPersonsInCar'
   | 'defaultKilometers'
   | 'defaultDays'
@@ -99,6 +110,7 @@ export type SettingsSnapshot = {
   settings: AppSetting[];
   settingsByKey: Record<AppSettingKey, AppSetting>;
   constants: CostConstants;
+  heroContent: HeroContent;
   publicConstantSettings: AppSetting[];
   editableSettings: AppSetting[];
   tripDefaults: TripInputs;

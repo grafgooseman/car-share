@@ -1,4 +1,12 @@
-import type { AppSetting, CostConstants, DerivedCosts, ExplainKey, TripInputDraft, TripInputs } from '../types';
+import type {
+  AppSetting,
+  CostConstants,
+  DerivedCosts,
+  ExplainKey,
+  HeroContent,
+  TripInputDraft,
+  TripInputs,
+} from '../types';
 import civicImage from '../../images/civic-960.png';
 import crashedCivicImage from '../../images/crashed-civic-320.png';
 import { ConstantsCard } from './ConstantsCard';
@@ -10,6 +18,7 @@ type CalculatorPageProps = {
   constants: CostConstants;
   constantSettings: AppSetting[];
   derived: DerivedCosts;
+  heroContent: HeroContent;
   inputDraft: TripInputDraft;
   inputs: TripInputs;
   maxPersonsInCar: number;
@@ -25,6 +34,7 @@ export function CalculatorPage({
   constants,
   constantSettings,
   derived,
+  heroContent,
   inputDraft,
   inputs,
   maxPersonsInCar,
@@ -37,7 +47,12 @@ export function CalculatorPage({
 }: CalculatorPageProps) {
   return (
     <div className="app-shell">
-      <HeroPanel carName={constants.carName} imageSrc={civicImage} riskImageSrc={crashedCivicImage} />
+      <HeroPanel
+        carName={constants.carName}
+        content={heroContent}
+        imageSrc={civicImage}
+        riskImageSrc={crashedCivicImage}
+      />
       <main className="calculator-shell">
         <TripInputsCard inputs={inputDraft} maxPersonsInCar={maxPersonsInCar} onChange={onInputChange} />
         <ResultCard derived={derived} inputs={inputs} />
