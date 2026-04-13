@@ -7,6 +7,7 @@ import { EditSettingsModal } from './components/EditSettingsModal';
 import { InfoModal } from './components/InfoModal';
 import { calculateDerivedCosts, sanitizeTripInputs } from './lib/calculations';
 import {
+  clearLocalAdminSession,
   fetchAdminSession,
   fetchPublicSettings,
   signInAdmin,
@@ -36,11 +37,31 @@ const EMPTY_ADMIN_SESSION: AdminSession = {
 };
 
 const ADMIN_SIGN_UP_HASH = '#admin-sign-up';
+const SETTINGS_LOAD_TIMEOUT_MS = 12000;
+const ADMIN_SESSION_TIMEOUT_MS = 4000;
 
 const getErrorMessage = (error: unknown) =>
   error instanceof Error ? error.message : 'Something went wrong.';
 
 const getCurrentHash = () => (typeof window === 'undefined' ? '' : window.location.hash);
+
+const withTimeout = <T,>(promise: Promise<T>, timeoutMs: number, message: string) =>
+  new Promise<T>((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => {
+      reject(new Error(message));
+    }, timeoutMs);
+
+    promise.then(
+      (value) => {
+        window.clearTimeout(timeoutId);
+        resolve(value);
+      },
+      (error: unknown) => {
+        window.clearTimeout(timeoutId);
+        reject(error);
+      },
+    );
+  });
 
 function App() {
   const [settingsSnapshot, setSettingsSnapshot] = useState<SettingsSnapshot | null>(null);
@@ -82,12 +103,49 @@ function App() {
   useEffect(() => {
     let isActive = true;
 
+    const loadAdminSessionState = async (recoverLocalSession: boolean) => {
+      try {
+        const nextAdminSession = await withTimeout(
+          fetchAdminSession(),
+          ADMIN_SESSION_TIMEOUT_MS,
+          'Loading your admin session timed out.',
+        );
+        if (!isActive) {
+          return;
+        }
+
+        startTransition(() => {
+          setAdminSession(nextAdminSession);
+        });
+      } catch {
+        if (recoverLocalSession) {
+          try {
+            await clearLocalAdminSession();
+          } catch {
+            // Fall back to a signed-out UI even if local cleanup fails.
+          }
+        }
+
+        if (!isActive) {
+          return;
+        }
+
+        startTransition(() => {
+          setAdminSession(EMPTY_ADMIN_SESSION);
+        });
+      }
+    };
+
     const loadApp = async () => {
       setIsLoading(true);
       setLoadError('');
 
       try {
-        const [settings, nextAdminSession] = await Promise.all([fetchPublicSettings(), fetchAdminSession()]);
+        const settings = await withTimeout(
+          fetchPublicSettings(),
+          SETTINGS_LOAD_TIMEOUT_MS,
+          'Loading calculator settings timed out.',
+        );
         if (!isActive) {
           return;
         }
@@ -96,9 +154,10 @@ function App() {
         startTransition(() => {
           setSettingsSnapshot(nextSnapshot);
           setInputDraft(toTripInputDraft(nextSnapshot.tripDefaults));
-          setAdminSession(nextAdminSession);
           setIsLoading(false);
         });
+
+        void loadAdminSessionState(true);
       } catch (error) {
         if (!isActive) {
           return;
@@ -112,24 +171,7 @@ function App() {
     void loadApp();
 
     const unsubscribe = subscribeToAuthChanges(async () => {
-      try {
-        const nextAdminSession = await fetchAdminSession();
-        if (!isActive) {
-          return;
-        }
-
-        startTransition(() => {
-          setAdminSession(nextAdminSession);
-        });
-      } catch {
-        if (!isActive) {
-          return;
-        }
-
-        startTransition(() => {
-          setAdminSession(EMPTY_ADMIN_SESSION);
-        });
-      }
+      await loadAdminSessionState(false);
     });
 
     return () => {

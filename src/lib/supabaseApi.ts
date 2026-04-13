@@ -211,6 +211,15 @@ export const signOutAdmin = async () => {
   }
 };
 
+export const clearLocalAdminSession = async () => {
+  const supabase = getSupabaseBrowserClient();
+  const { error } = await supabase.auth.signOut({ scope: 'local' });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+};
+
 export const updateAppSettings = async (updates: AppSettingUpdate[]) => {
   const supabase = getSupabaseBrowserClient();
 

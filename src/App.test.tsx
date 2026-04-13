@@ -4,6 +4,7 @@ import App from './App';
 import { adminSessionFixture, seededAppSettings } from './test/fixtures/appSettings';
 
 const {
+  clearLocalAdminSession,
   fetchPublicSettings,
   fetchAdminSession,
   subscribeToAuthChanges,
@@ -12,6 +13,7 @@ const {
   signOutAdmin,
   updateAppSettings,
 } = vi.hoisted(() => ({
+  clearLocalAdminSession: vi.fn(),
   fetchPublicSettings: vi.fn(),
   fetchAdminSession: vi.fn(),
   subscribeToAuthChanges: vi.fn(),
@@ -22,6 +24,7 @@ const {
 }));
 
 vi.mock('./lib/supabaseApi', () => ({
+  clearLocalAdminSession,
   fetchPublicSettings,
   fetchAdminSession,
   subscribeToAuthChanges,
@@ -34,6 +37,7 @@ vi.mock('./lib/supabaseApi', () => ({
 describe('App', () => {
   beforeEach(() => {
     window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    clearLocalAdminSession.mockResolvedValue(undefined);
     fetchPublicSettings.mockResolvedValue(seededAppSettings);
     fetchAdminSession.mockResolvedValue({ authEmail: null, adminUser: null });
     subscribeToAuthChanges.mockReturnValue(() => undefined);
@@ -145,6 +149,17 @@ describe('App', () => {
       await screen.findByText('Registration created. Confirm your email, then sign in as an admin.'),
     ).toBeInTheDocument();
     expect(window.location.hash).toBe('');
+  });
+
+  it('renders the calculator even if the admin session lookup never resolves', async () => {
+    fetchAdminSession.mockImplementation(() => new Promise(() => undefined));
+
+    render(<App />);
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Honda Civic Sedan 2012' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('What this calculator uses')).toBeInTheDocument();
   });
 
   it('keeps the admin sign up CTA visible for signed-in non-admin users', async () => {
