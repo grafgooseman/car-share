@@ -11,10 +11,9 @@ export function HeroPanel({ carName, imageSrc, riskImageSrc }: HeroPanelProps) {
         <p className="eyebrow">Trip Cost Splitter</p>
         <h1>{carName}</h1>
         <p className="hero-text">
-          A clean way to calculate who owes what for a trip using the same cost logic as the
-          original spreadsheet.
+          A clean way to calculate who owes what for a trip.
         </p>
-        <div className="hero-badges"> 
+        <div className="hero-badges">
           <span>Fuel + insurance + maintenance</span>
           <span>Risks included</span>
           <span>Rounded up to the nearest dollar</span>
@@ -26,7 +25,7 @@ export function HeroPanel({ carName, imageSrc, riskImageSrc }: HeroPanelProps) {
           src={imageSrc}
           alt={carName}
           width={960}
-          height={640}
+          height={340}
           decoding="async"
           fetchPriority="high"
         />
