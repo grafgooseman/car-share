@@ -2,6 +2,8 @@ import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 import type { AdminSession, AdminUser, AppSetting, AppSettingUpdate } from '../types';
 import { getSupabaseBrowserClient } from './supabase';
 
+const ADMIN_AUTH_REDIRECT_URL = 'https://grafgooseman.github.io/car-share/';
+
 type AppSettingRow = {
   key: AppSetting['key'];
   group_key: string;
@@ -186,7 +188,7 @@ export const signUpAdmin = async (input: {
     email: input.email,
     password: input.password,
     options: {
-      emailRedirectTo: window.location.origin,
+      emailRedirectTo: ADMIN_AUTH_REDIRECT_URL,
       data: {
         signup_kind: 'admin',
         admin_signup_code: input.code,
