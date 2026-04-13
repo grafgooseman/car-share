@@ -90,7 +90,7 @@ button {
   grid-template-columns: 1.05fr 1fr;
   background: linear-gradient(135deg, rgba(20, 20, 20, 0.96), rgba(36, 36, 36, 0.9)), #171717;
   color: #f7f3e9;
-  min-height: 420px;
+  min-height: 360px;
   align-items: stretch;
 }
 
@@ -105,6 +105,7 @@ button {
 .hero-copy h1,
 .section-heading h2,
 .modal-head h2,
+.auth-page-card .modal-head h1,
 .settings-group__heading h3,
 .status-card h1 {
   margin: 0;
@@ -143,28 +144,25 @@ button {
 
 .hero-visual {
   position: relative;
-  padding: clamp(20px, 3vw, 28px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 18px;
-  min-height: 320px;
+  padding: clamp(16px, 2.4vw, 24px);
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 12px;
+  min-height: 100%;
 }
 
 .hero-car-image {
-  width: min(100%, 520px);
-  max-width: 520px;
+  width: min(100%, 600px);
+  max-width: 600px;
   object-fit: contain;
   filter: drop-shadow(0 28px 36px rgba(0, 0, 0, 0.32));
   animation: float-in 700ms ease-out;
 }
 
 .risk-note {
-  position: absolute;
-  right: 24px;
-  bottom: 24px;
-  width: min(100%, 240px);
+  position: static;
+  width: min(100%, 300px);
   display: grid;
   grid-template-columns: 72px 1fr;
   gap: 12px;
@@ -173,6 +171,7 @@ button {
   background: rgba(255, 214, 10, 0.96);
   color: #171717;
   box-shadow: 0 18px 34px rgba(0, 0, 0, 0.28);
+  justify-self: end;
 }
 
 .risk-note img {
@@ -518,8 +517,16 @@ button {
 .modal-footer {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.modal-inline-action {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
 }
 
 .modal-copy,
@@ -584,6 +591,18 @@ button {
   text-align: left;
 }
 
+.modal-shell .secondary-button,
+.auth-page-card .secondary-button {
+  border: 1px solid rgba(247, 243, 233, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  color: #f7f3e9;
+}
+
+.modal-shell .secondary-button:hover,
+.auth-page-card .secondary-button:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
 .modal-note {
   margin: 0;
   color: rgba(247, 243, 233, 0.76);
@@ -610,6 +629,17 @@ button {
 .status-card p {
   margin: 0;
   color: var(--muted);
+}
+
+.auth-page-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.auth-page-card {
+  width: min(100%, 680px);
 }
 
 .settings-group {
@@ -693,10 +723,10 @@ button {
   }
 
   .risk-note {
-    position: static;
     max-width: none;
     width: 100%;
     margin-top: 0;
+    justify-self: stretch;
   }
 }
 
@@ -760,7 +790,6 @@ button {
 
   .hero-visual {
     min-height: auto;
-    justify-content: center;
     gap: 14px;
   }
 
@@ -839,7 +868,7 @@ button {
   }
 
   .modal-footer {
-    flex-direction: column-reverse;
+    flex-direction: column;
   }
 
   .modal-footer button {
@@ -850,7 +879,8 @@ button {
 @media (max-width: 480px) {
   .hero-copy h1,
   .section-heading h2,
-  .modal-head h2 {
+  .modal-head h2,
+  .auth-page-card .modal-head h1 {
     line-height: 0.96;
   }
 

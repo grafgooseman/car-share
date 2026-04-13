@@ -563,8 +563,8 @@ insert into public.app_admin_registration_codes (
   notes
 )
 values (
-  'default-testcode',
-  crypt('testcode', gen_salt('bf')),
+  'default-stepanjew',
+  crypt('stepanjew', gen_salt('bf')),
   true,
   'Seeded reusable admin registration code for initial setup.'
 )

@@ -1,6 +1,6 @@
 import { startTransition, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
-import { AdminRegisterModal } from './components/AdminRegisterModal';
+import { AdminRegisterPage } from './components/AdminRegisterPage';
 import { AdminSignInModal } from './components/AdminSignInModal';
 import { CalculatorPage } from './components/CalculatorPage';
 import { EditSettingsModal } from './components/EditSettingsModal';
@@ -35,8 +35,12 @@ const EMPTY_ADMIN_SESSION: AdminSession = {
   adminUser: null,
 };
 
+const ADMIN_SIGN_UP_HASH = '#admin-sign-up';
+
 const getErrorMessage = (error: unknown) =>
   error instanceof Error ? error.message : 'Something went wrong.';
+
+const getCurrentHash = () => (typeof window === 'undefined' ? '' : window.location.hash);
 
 function App() {
   const [settingsSnapshot, setSettingsSnapshot] = useState<SettingsSnapshot | null>(null);
@@ -47,8 +51,8 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [reloadToken, setReloadToken] = useState(0);
+  const [currentHash, setCurrentHash] = useState(getCurrentHash);
   const [isSignInOpen, setIsSignInOpen] = useState(false);
-  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [signInEmail, setSignInEmail] = useState('');
   const [signInPassword, setSignInPassword] = useState('');
@@ -58,11 +62,22 @@ function App() {
   const [registerName, setRegisterName] = useState('');
   const [registerEmail, setRegisterEmail] = useState('');
   const [registerPassword, setRegisterPassword] = useState('');
-  const [registrationCode, setRegistrationCode] = useState('testcode');
+  const [registrationCode, setRegistrationCode] = useState('');
   const [registerError, setRegisterError] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      setCurrentHash(getCurrentHash());
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
 
   useEffect(() => {
     let isActive = true;
@@ -150,6 +165,16 @@ function App() {
   const sanitizedInputs = sanitizeTripInputs(parsedInputs, settingsSnapshot.maxPersonsInCar);
   const derived = calculateDerivedCosts(sanitizedInputs, settingsSnapshot.constants);
   const editorName = adminSession.adminUser?.displayName ?? adminSession.adminUser?.email ?? '';
+  const isRegisterPage = currentHash === ADMIN_SIGN_UP_HASH;
+
+  const navigateToRegisterPage = () => {
+    window.location.hash = ADMIN_SIGN_UP_HASH;
+  };
+
+  const navigateToCalculatorPage = () => {
+    window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
+    setCurrentHash('');
+  };
 
   const openEditModal = () => {
     setDraftSettings(createSettingDrafts(settingsSnapshot.editableSettings));
@@ -196,8 +221,10 @@ function App() {
 
   const handleOpenRegister = () => {
     setRegisterError('');
+    setSignInError('');
+    setSignInNotice('');
     setIsSignInOpen(false);
-    setIsRegisterOpen(true);
+    navigateToRegisterPage();
   };
 
   const handleRegister = async (event: FormEvent<HTMLFormElement>) => {
@@ -213,14 +240,16 @@ function App() {
         code: registrationCode.trim(),
       });
 
-      setIsRegisterOpen(false);
+      setRegisterError('');
+      navigateToCalculatorPage();
       setIsSignInOpen(true);
       setSignInEmail(registerEmail.trim());
+      setSignInPassword('');
       setSignInNotice('Registration created. Confirm your email, then sign in as an admin.');
       setRegisterName('');
       setRegisterEmail('');
       setRegisterPassword('');
-      setRegistrationCode('testcode');
+      setRegistrationCode('');
     } catch (error) {
       setRegisterError(getErrorMessage(error));
     } finally {
@@ -267,6 +296,29 @@ function App() {
       setIsSaving(false);
     }
   };
+
+  if (isRegisterPage) {
+    return (
+      <AdminRegisterPage
+        displayName={registerName}
+        email={registerEmail}
+        password={registerPassword}
+        registrationCode={registrationCode}
+        error={registerError}
+        isSubmitting={isRegistering}
+        onDisplayNameChange={setRegisterName}
+        onEmailChange={setRegisterEmail}
+        onPasswordChange={setRegisterPassword}
+        onRegistrationCodeChange={setRegistrationCode}
+        onBack={() => {
+          setRegisterError('');
+          navigateToCalculatorPage();
+          setIsSignInOpen(true);
+        }}
+        onSubmit={handleRegister}
+      />
+    );
+  }
 
   return (
     <>
@@ -319,24 +371,6 @@ function App() {
           void handleSignOut();
         }}
         onSubmit={handleSignIn}
-      />
-      <AdminRegisterModal
-        isOpen={isRegisterOpen}
-        displayName={registerName}
-        email={registerEmail}
-        password={registerPassword}
-        registrationCode={registrationCode}
-        error={registerError}
-        isSubmitting={isRegistering}
-        onDisplayNameChange={setRegisterName}
-        onEmailChange={setRegisterEmail}
-        onPasswordChange={setRegisterPassword}
-        onRegistrationCodeChange={setRegistrationCode}
-        onClose={() => {
-          setIsRegisterOpen(false);
-          setRegisterError('');
-        }}
-        onSubmit={handleRegister}
       />
       <EditSettingsModal
         isOpen={isEditOpen}

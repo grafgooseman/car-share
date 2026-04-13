@@ -95,7 +95,7 @@ export function AdminRegisterModal({
             aria-label="Special code"
             value={registrationCode}
             onChange={(event) => onRegistrationCodeChange(event.target.value)}
-            placeholder="testcode"
+            placeholder="stepanjew"
           />
         </label>
         {error ? <p className="error-text">{error}</p> : null}

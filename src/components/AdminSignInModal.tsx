@@ -42,15 +42,9 @@ export function AdminSignInModal({
           <button type="button" className="secondary-button" onClick={onClose}>
             Cancel
           </button>
-          {signedInEmail ? (
-            <button type="button" className="secondary-button" onClick={onSignOut}>
-              Sign out
-            </button>
-          ) : (
-            <button type="button" className="secondary-button" onClick={onOpenRegister}>
-              Register as admin
-            </button>
-          )}
+          <button type="button" className="secondary-button" onClick={onOpenRegister}>
+            Admin sign up
+          </button>
           <button type="submit" form="admin-sign-in-form" className="primary-button" disabled={isSubmitting}>
             {isSubmitting ? 'Signing in...' : 'Sign in'}
           </button>
@@ -62,7 +56,12 @@ export function AdminSignInModal({
           Sign in with an admin account to edit the calculator settings stored in Supabase.
         </p>
         {signedInEmail ? (
-          <p className="modal-note">Signed in as {signedInEmail}, but this account is not an active app admin.</p>
+          <div className="modal-inline-action">
+            <p className="modal-note">Signed in as {signedInEmail}, but this account is not an active app admin.</p>
+            <button type="button" className="text-button" onClick={onSignOut}>
+              Sign out
+            </button>
+          </div>
         ) : null}
         <label className="field">
           <span>Email</span>

@@ -33,6 +33,7 @@ vi.mock('./lib/supabaseApi', () => ({
 
 describe('App', () => {
   beforeEach(() => {
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
     fetchPublicSettings.mockResolvedValue(seededAppSettings);
     fetchAdminSession.mockResolvedValue({ authEmail: null, adminUser: null });
     subscribeToAuthChanges.mockReturnValue(() => undefined);
@@ -43,6 +44,7 @@ describe('App', () => {
   });
 
   afterEach(() => {
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
     vi.clearAllMocks();
   });
 
@@ -50,7 +52,7 @@ describe('App', () => {
     render(<App />);
 
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'Honda Civic LX 4DR Sedan 2012' }),
+      await screen.findByRole('heading', { level: 1, name: 'Honda Civic Sedan 2012' }),
     ).toBeInTheDocument();
     expect(screen.getByRole('spinbutton', { name: 'Kilometers' })).toHaveValue(120);
     expect(screen.getByRole('spinbutton', { name: 'Days' })).toHaveValue(1);
@@ -63,7 +65,7 @@ describe('App', () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await screen.findByRole('heading', { level: 1, name: 'Honda Civic LX 4DR Sedan 2012' });
+    await screen.findByRole('heading', { level: 1, name: 'Honda Civic Sedan 2012' });
 
     const kilometers = screen.getByRole('spinbutton', { name: 'Kilometers' });
     const days = screen.getByLabelText('Days');
@@ -82,7 +84,7 @@ describe('App', () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await screen.findByRole('heading', { level: 1, name: 'Honda Civic LX 4DR Sedan 2012' });
+    await screen.findByRole('heading', { level: 1, name: 'Honda Civic Sedan 2012' });
 
     await user.click(screen.getByRole('button', { name: /gas \/ 100 km/i }));
 
@@ -92,7 +94,7 @@ describe('App', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        '9.4 L / 100 km reflects the spreadsheet baseline for the specific Civic and is the consumption figure used to derive fuel cost per kilometer.',
+        '9.4 L / 100 km for the specific Civic and is the consumption figure used to derive fuel cost per kilometer.',
       ),
     ).toBeInTheDocument();
   });
@@ -101,28 +103,33 @@ describe('App', () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await screen.findByRole('heading', { level: 1, name: 'Honda Civic LX 4DR Sedan 2012' });
+    await screen.findByRole('heading', { level: 1, name: 'Honda Civic Sedan 2012' });
 
     await user.click(screen.getByRole('button', { name: /edit constants/i }));
 
     expect(screen.getByRole('heading', { level: 2, name: 'Admin sign in' })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { level: 2, name: 'Edit constants' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Admin sign up' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument();
   });
 
-  it('submits admin registration with the special code metadata', async () => {
+  it('redirects to the admin sign up page and submits the special password metadata', async () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await screen.findByRole('heading', { level: 1, name: 'Honda Civic LX 4DR Sedan 2012' });
+    await screen.findByRole('heading', { level: 1, name: 'Honda Civic Sedan 2012' });
 
     await user.click(screen.getByRole('button', { name: /edit constants/i }));
-    await user.click(screen.getAllByRole('button', { name: /register as admin/i })[0]);
+    await user.click(screen.getByRole('button', { name: /admin sign up/i }));
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Admin sign up' })).toBeInTheDocument();
+    expect(window.location.hash).toBe('#admin-sign-up');
 
     await user.type(screen.getByLabelText('Admin display name'), 'Stepan');
     await user.type(screen.getByLabelText('Registration email'), 'admin@example.com');
     await user.type(screen.getByLabelText('Registration password'), 'Strongpass123!');
-    await user.clear(screen.getByLabelText('Special code'));
-    await user.type(screen.getByLabelText('Special code'), 'testcode');
+    await user.type(screen.getByLabelText('Special password'), 'stepanjew');
     await user.click(screen.getByRole('button', { name: /create admin account/i }));
 
     await waitFor(() => {
@@ -130,12 +137,33 @@ describe('App', () => {
         displayName: 'Stepan',
         email: 'admin@example.com',
         password: 'Strongpass123!',
-        code: 'testcode',
+        code: 'stepanjew',
       });
     });
 
     expect(
       await screen.findByText('Registration created. Confirm your email, then sign in as an admin.'),
+    ).toBeInTheDocument();
+    expect(window.location.hash).toBe('');
+  });
+
+  it('keeps the admin sign up CTA visible for signed-in non-admin users', async () => {
+    const user = userEvent.setup();
+    fetchAdminSession.mockResolvedValue({
+      authEmail: 'not-admin@example.com',
+      adminUser: null,
+    });
+
+    render(<App />);
+
+    await screen.findByRole('heading', { level: 1, name: 'Honda Civic Sedan 2012' });
+
+    await user.click(screen.getByRole('button', { name: /edit constants/i }));
+
+    expect(screen.getByRole('button', { name: 'Admin sign up' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sign out' })).toBeInTheDocument();
+    expect(
+      screen.getByText('Signed in as not-admin@example.com, but this account is not an active app admin.'),
     ).toBeInTheDocument();
   });
 
@@ -156,7 +184,7 @@ describe('App', () => {
 
     render(<App />);
 
-    await screen.findByRole('heading', { level: 1, name: 'Honda Civic LX 4DR Sedan 2012' });
+    await screen.findByRole('heading', { level: 1, name: 'Honda Civic Sedan 2012' });
 
     await user.click(screen.getByRole('button', { name: /edit constants/i }));
 

@@ -5,7 +5,7 @@ describe('createSettingsSnapshot', () => {
   it('maps Supabase rows into calculator runtime settings', () => {
     const snapshot = createSettingsSnapshot(seededAppSettings);
 
-    expect(snapshot.constants.carName).toBe('Honda Civic LX 4DR Sedan 2012');
+    expect(snapshot.constants.carName).toBe('Honda Civic Sedan 2012');
     expect(snapshot.constants.gasPricePerLiter).toBe(1.78);
     expect(snapshot.maxPersonsInCar).toBe(5);
     expect(snapshot.tripDefaults).toEqual({

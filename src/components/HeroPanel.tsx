@@ -14,10 +14,10 @@ export function HeroPanel({ carName, imageSrc, riskImageSrc }: HeroPanelProps) {
           A clean way to calculate who owes what for a trip using the same cost logic as the
           original spreadsheet.
         </p>
-        <div className="hero-badges">
-          <span>Fuel + insurance + wear</span>
-          <span>Parking included</span>
-          <span>Rounded up fairly</span>
+        <div className="hero-badges"> 
+          <span>Fuel + insurance + maintenance</span>
+          <span>Risks included</span>
+          <span>Rounded up to the nearest dollar</span>
         </div>
       </div>
       <div className="hero-visual">
