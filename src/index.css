@@ -146,9 +146,10 @@ button {
   position: relative;
   padding: clamp(16px, 2.4vw, 24px);
   display: grid;
-  align-content: center;
-  justify-items: center;
-  gap: 12px;
+  grid-template-rows: minmax(0, 1fr) auto;
+  align-content: stretch;
+  justify-items: stretch;
+  gap: 18px;
   min-height: 100%;
 }
 
@@ -158,25 +159,28 @@ button {
   object-fit: contain;
   filter: drop-shadow(0 28px 36px rgba(0, 0, 0, 0.32));
   animation: float-in 700ms ease-out;
+  justify-self: center;
+  align-self: center;
 }
 
 .risk-note {
   position: static;
-  width: min(100%, 300px);
+  width: min(100%, 420px);
   display: grid;
-  grid-template-columns: 72px 1fr;
-  gap: 12px;
-  padding: 14px;
+  grid-template-columns: 96px 1fr;
+  gap: 16px;
+  padding: 18px;
   border-radius: 22px;
   background: rgba(255, 214, 10, 0.96);
   color: #171717;
   box-shadow: 0 18px 34px rgba(0, 0, 0, 0.28);
-  justify-self: end;
+  justify-self: center;
+  align-self: end;
 }
 
 .risk-note img {
-  width: 72px;
-  height: 72px;
+  width: 96px;
+  height: 96px;
   object-fit: cover;
   border-radius: 16px;
 }
@@ -252,11 +256,23 @@ button {
 }
 
 .input-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-areas:
+    "kilometers kilometers"
+    "days persons";
+  align-items: start;
 }
 
-.field--wide {
-  grid-column: span 2;
+.field--kilometers {
+  grid-area: kilometers;
+}
+
+.field--days {
+  grid-area: days;
+}
+
+.field--persons {
+  grid-area: persons;
 }
 
 .edit-grid {
@@ -266,6 +282,7 @@ button {
 .field {
   display: grid;
   gap: 8px;
+  align-content: start;
 }
 
 .field span {
@@ -286,6 +303,7 @@ button {
   background: rgba(255, 255, 255, 0.84);
   transition: border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
   min-width: 0;
+  min-height: 56px;
 }
 
 .slider-field {
@@ -733,10 +751,9 @@ button {
 @media (max-width: 900px) {
   .input-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .field--wide {
-    grid-column: 1 / -1;
+    grid-template-areas:
+      "kilometers kilometers"
+      "days persons";
   }
 
   .constants-grid,
@@ -831,10 +848,10 @@ button {
 
   .input-grid {
     grid-template-columns: 1fr;
-  }
-
-  .field--wide {
-    grid-column: auto;
+    grid-template-areas:
+      "kilometers"
+      "days"
+      "persons";
   }
 
   .field input,

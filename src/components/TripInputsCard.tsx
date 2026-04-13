@@ -27,7 +27,7 @@ export function TripInputsCard({ inputs, maxPersonsInCar, onChange }: TripInputs
         </div>
       </div>
       <div className="input-grid">
-        <div className="field field--wide">
+        <div className="field field--kilometers">
           <span>Kilometers</span>
           <div className="slider-field">
             <input
@@ -50,7 +50,7 @@ export function TripInputsCard({ inputs, maxPersonsInCar, onChange }: TripInputs
             />
           </div>
         </div>
-        <label className="field">
+        <label className="field field--days">
           <span>Days</span>
           <input
             aria-label="Days"
@@ -61,7 +61,7 @@ export function TripInputsCard({ inputs, maxPersonsInCar, onChange }: TripInputs
             onChange={(event) => onChange('days', event.target.value)}
           />
         </label>
-        <label className="field">
+        <label className="field field--persons">
           <span>Persons in car</span>
           <select
             aria-label="Persons in car"
