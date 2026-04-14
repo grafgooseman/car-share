@@ -4,6 +4,8 @@ export type TripInputs = {
   personsInCar: number;
 };
 
+export type LoadStatus = 'loading' | 'ready' | 'error';
+
 export type TripInputDraft = {
   kilometers: string;
   days: string;
@@ -129,4 +131,9 @@ export type AdminUser = {
 export type AdminSession = {
   authEmail: string | null;
   adminUser: AdminUser | null;
+};
+
+export type CalculatorShellState = {
+  settingsStatus: LoadStatus;
+  settingsError: string | null;
 };

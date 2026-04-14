@@ -1,5 +1,6 @@
 import type {
   AppSetting,
+  LoadStatus,
   CostConstants,
   DerivedCosts,
   ExplainKey,
@@ -15,15 +16,19 @@ import { ResultCard } from './ResultCard';
 import { TripInputsCard } from './TripInputsCard';
 
 type CalculatorPageProps = {
-  constants: CostConstants;
-  constantSettings: AppSetting[];
-  derived: DerivedCosts;
-  heroContent: HeroContent;
+  settingsStatus: LoadStatus;
+  settingsError: string | null;
+  onRetrySettingsLoad: () => void;
+  constants?: CostConstants;
+  constantSettings?: AppSetting[];
+  derived?: DerivedCosts;
+  heroContent?: HeroContent;
   inputDraft: TripInputDraft;
-  inputs: TripInputs;
-  maxPersonsInCar: number;
+  inputs?: TripInputs;
+  maxPersonsInCar?: number;
   editorName: string;
   isAdmin: boolean;
+  isAdminSessionLoading: boolean;
   onInputChange: (field: keyof TripInputDraft, value: string) => void;
   onExplain: (key: ExplainKey) => void;
   onRequestEdit: () => void;
@@ -31,6 +36,9 @@ type CalculatorPageProps = {
 };
 
 export function CalculatorPage({
+  settingsStatus,
+  settingsError,
+  onRetrySettingsLoad,
   constants,
   constantSettings,
   derived,
@@ -40,25 +48,48 @@ export function CalculatorPage({
   maxPersonsInCar,
   editorName,
   isAdmin,
+  isAdminSessionLoading,
   onInputChange,
   onExplain,
   onRequestEdit,
   onSignOut,
 }: CalculatorPageProps) {
+  const isLoading = settingsStatus === 'loading';
+  const isError = settingsStatus === 'error';
+
   return (
     <div className="app-shell">
       <HeroPanel
-        carName={constants.carName}
+        carName={constants?.carName}
         content={heroContent}
         imageSrc={civicImage}
         riskImageSrc={crashedCivicImage}
+        isLoading={isLoading}
+        isError={isError && Boolean(settingsError)}
       />
       <main className="calculator-shell">
-        <TripInputsCard inputs={inputDraft} maxPersonsInCar={maxPersonsInCar} onChange={onInputChange} />
-        <ResultCard derived={derived} inputs={inputs} />
+        <TripInputsCard
+          inputs={inputDraft}
+          maxPersonsInCar={maxPersonsInCar}
+          isSettingsReady={settingsStatus === 'ready'}
+          isSettingsError={isError}
+          onRetrySettingsLoad={onRetrySettingsLoad}
+          onChange={onInputChange}
+        />
+        <ResultCard
+          derived={derived}
+          inputs={inputs}
+          isLoading={isLoading}
+          isError={isError}
+          onRetry={onRetrySettingsLoad}
+        />
         <ConstantsCard
           settings={constantSettings}
           derived={derived}
+          isLoading={isLoading}
+          isError={isError}
+          isAdminSessionLoading={isAdminSessionLoading}
+          onRetry={onRetrySettingsLoad}
           onExplain={onExplain}
           onRequestEdit={onRequestEdit}
           onSignOut={onSignOut}

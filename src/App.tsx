@@ -1,4 +1,4 @@
-import { startTransition, useEffect, useState } from 'react';
+import { startTransition, useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { AdminRegisterPage } from './components/AdminRegisterPage';
 import { AdminSignInModal } from './components/AdminSignInModal';
@@ -23,7 +23,14 @@ import {
   parseTripInputDraft,
   toTripInputDraft,
 } from './lib/settings';
-import type { AdminSession, AppSettingDraft, ExplainKey, SettingsSnapshot, TripInputDraft } from './types';
+import type {
+  AdminSession,
+  AppSettingDraft,
+  ExplainKey,
+  LoadStatus,
+  SettingsSnapshot,
+  TripInputDraft,
+} from './types';
 
 const EMPTY_TRIP_DRAFT: TripInputDraft = {
   kilometers: '',
@@ -67,9 +74,10 @@ function App() {
   const [settingsSnapshot, setSettingsSnapshot] = useState<SettingsSnapshot | null>(null);
   const [inputDraft, setInputDraft] = useState<TripInputDraft>(EMPTY_TRIP_DRAFT);
   const [adminSession, setAdminSession] = useState<AdminSession>(EMPTY_ADMIN_SESSION);
+  const [settingsStatus, setSettingsStatus] = useState<LoadStatus>('loading');
+  const [adminSessionStatus, setAdminSessionStatus] = useState<LoadStatus>('loading');
   const [explainKey, setExplainKey] = useState<ExplainKey | null>(null);
   const [draftSettings, setDraftSettings] = useState<AppSettingDraft[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [reloadToken, setReloadToken] = useState(0);
   const [currentHash, setCurrentHash] = useState(getCurrentHash);
@@ -88,6 +96,20 @@ function App() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const inputDraftRef = useRef<TripInputDraft>(EMPTY_TRIP_DRAFT);
+
+  useEffect(() => {
+    inputDraftRef.current = inputDraft;
+  }, [inputDraft]);
+
+  useEffect(() => {
+    if (settingsStatus === 'ready') {
+      return;
+    }
+
+    setExplainKey(null);
+    setIsEditOpen(false);
+  }, [settingsStatus]);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -104,6 +126,8 @@ function App() {
     let isActive = true;
 
     const loadAdminSessionState = async (recoverLocalSession: boolean) => {
+      setAdminSessionStatus('loading');
+
       try {
         const nextAdminSession = await withTimeout(
           fetchAdminSession(),
@@ -116,6 +140,7 @@ function App() {
 
         startTransition(() => {
           setAdminSession(nextAdminSession);
+          setAdminSessionStatus('ready');
         });
       } catch {
         if (recoverLocalSession) {
@@ -132,12 +157,13 @@ function App() {
 
         startTransition(() => {
           setAdminSession(EMPTY_ADMIN_SESSION);
+          setAdminSessionStatus('error');
         });
       }
     };
 
     const loadApp = async () => {
-      setIsLoading(true);
+      setSettingsStatus('loading');
       setLoadError('');
 
       try {
@@ -151,24 +177,29 @@ function App() {
         }
 
         const nextSnapshot = createSettingsSnapshot(settings);
+        const nextInputs = sanitizeTripInputs(
+          parseTripInputDraft(inputDraftRef.current, nextSnapshot.tripDefaults),
+          nextSnapshot.maxPersonsInCar,
+        );
+
         startTransition(() => {
           setSettingsSnapshot(nextSnapshot);
-          setInputDraft(toTripInputDraft(nextSnapshot.tripDefaults));
-          setIsLoading(false);
+          setInputDraft(toTripInputDraft(nextInputs));
+          setSettingsStatus('ready');
         });
-
-        void loadAdminSessionState(true);
       } catch (error) {
         if (!isActive) {
           return;
         }
 
         setLoadError(getErrorMessage(error));
-        setIsLoading(false);
+        setSettingsSnapshot(null);
+        setSettingsStatus('error');
       }
     };
 
     void loadApp();
+    void loadAdminSessionState(true);
 
     const unsubscribe = subscribeToAuthChanges(async () => {
       await loadAdminSessionState(false);
@@ -180,34 +211,14 @@ function App() {
     };
   }, [reloadToken]);
 
-  if (isLoading || !settingsSnapshot) {
-    return (
-      <main className="status-shell">
-        <section className="status-card">
-          <p className="eyebrow">Supabase</p>
-          <h1>{loadError ? 'Failed to load calculator settings' : 'Loading calculator settings'}</h1>
-          <p>{loadError || 'Fetching the current calculator configuration from Supabase.'}</p>
-          {loadError ? (
-            <button
-              type="button"
-              className="primary-button"
-              onClick={() => {
-                setReloadToken((current) => current + 1);
-              }}
-            >
-              Retry
-            </button>
-          ) : null}
-        </section>
-      </main>
-    );
-  }
-
-  const parsedInputs = parseTripInputDraft(inputDraft, settingsSnapshot.tripDefaults);
-  const sanitizedInputs = sanitizeTripInputs(parsedInputs, settingsSnapshot.maxPersonsInCar);
-  const derived = calculateDerivedCosts(sanitizedInputs, settingsSnapshot.constants);
-  const editorName = adminSession.adminUser?.displayName ?? adminSession.adminUser?.email ?? '';
   const isRegisterPage = currentHash === ADMIN_SIGN_UP_HASH;
+  const isSettingsReady = settingsStatus === 'ready' && settingsSnapshot !== null;
+  const parsedInputs = isSettingsReady ? parseTripInputDraft(inputDraft, settingsSnapshot.tripDefaults) : null;
+  const sanitizedInputs =
+    isSettingsReady && parsedInputs ? sanitizeTripInputs(parsedInputs, settingsSnapshot.maxPersonsInCar) : undefined;
+  const derived =
+    isSettingsReady && sanitizedInputs ? calculateDerivedCosts(sanitizedInputs, settingsSnapshot.constants) : undefined;
+  const editorName = adminSession.adminUser?.displayName ?? adminSession.adminUser?.email ?? '';
 
   const navigateToRegisterPage = () => {
     window.location.hash = ADMIN_SIGN_UP_HASH;
@@ -219,12 +230,20 @@ function App() {
   };
 
   const openEditModal = () => {
+    if (!settingsSnapshot) {
+      return;
+    }
+
     setDraftSettings(createSettingDrafts(settingsSnapshot.editableSettings));
     setSaveError('');
     setIsEditOpen(true);
   };
 
   const handleRequestEdit = () => {
+    if (!isSettingsReady) {
+      return;
+    }
+
     if (adminSession.adminUser) {
       openEditModal();
       return;
@@ -238,6 +257,7 @@ function App() {
   const handleSignIn = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSigningIn(true);
+    setAdminSessionStatus('loading');
     setSignInError('');
     setSignInNotice('');
 
@@ -245,6 +265,7 @@ function App() {
       await signInAdmin(signInEmail, signInPassword);
       const nextAdminSession = await fetchAdminSession();
       setAdminSession(nextAdminSession);
+      setAdminSessionStatus('ready');
 
       if (!nextAdminSession.adminUser) {
         setSignInError('This account is not registered as an admin.');
@@ -255,6 +276,7 @@ function App() {
       setSignInPassword('');
       openEditModal();
     } catch (error) {
+      setAdminSessionStatus('error');
       setSignInError(getErrorMessage(error));
     } finally {
       setIsSigningIn(false);
@@ -303,6 +325,7 @@ function App() {
     try {
       await signOutAdmin();
       setAdminSession(EMPTY_ADMIN_SESSION);
+      setAdminSessionStatus('ready');
       setIsEditOpen(false);
     } catch (error) {
       setSignInError(getErrorMessage(error));
@@ -310,8 +333,16 @@ function App() {
     }
   };
 
+  const handleRetrySettingsLoad = () => {
+    setReloadToken((current) => current + 1);
+  };
+
   const handleSaveSettings = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!settingsSnapshot) {
+      return;
+    }
+
     setIsSaving(true);
     setSaveError('');
 
@@ -365,15 +396,19 @@ function App() {
   return (
     <>
       <CalculatorPage
-        constants={settingsSnapshot.constants}
-        constantSettings={settingsSnapshot.publicConstantSettings}
+        settingsStatus={settingsStatus}
+        settingsError={loadError || null}
+        onRetrySettingsLoad={handleRetrySettingsLoad}
+        constants={settingsSnapshot?.constants}
+        constantSettings={settingsSnapshot?.publicConstantSettings}
         derived={derived}
-        heroContent={settingsSnapshot.heroContent}
+        heroContent={settingsSnapshot?.heroContent}
         inputDraft={inputDraft}
         inputs={sanitizedInputs}
-        maxPersonsInCar={settingsSnapshot.maxPersonsInCar}
+        maxPersonsInCar={settingsSnapshot?.maxPersonsInCar}
         editorName={editorName}
         isAdmin={Boolean(adminSession.adminUser)}
+        isAdminSessionLoading={adminSessionStatus === 'loading'}
         onInputChange={(field, value) => {
           setInputDraft((current) => ({
             ...current,
@@ -386,13 +421,15 @@ function App() {
           void handleSignOut();
         }}
       />
-      <InfoModal
-        isOpen={explainKey !== null}
-        explainKey={explainKey}
-        settingsSnapshot={settingsSnapshot}
-        derived={derived}
-        onClose={() => setExplainKey(null)}
-      />
+      {isSettingsReady && derived ? (
+        <InfoModal
+          isOpen={explainKey !== null}
+          explainKey={explainKey}
+          settingsSnapshot={settingsSnapshot}
+          derived={derived}
+          onClose={() => setExplainKey(null)}
+        />
+      ) : null}
       <AdminSignInModal
         isOpen={isSignInOpen}
         email={signInEmail}
@@ -415,30 +452,32 @@ function App() {
         }}
         onSubmit={handleSignIn}
       />
-      <EditSettingsModal
-        isOpen={isEditOpen}
-        draftSettings={draftSettings}
-        settingsSnapshot={settingsSnapshot}
-        tripInputs={sanitizedInputs}
-        isSaving={isSaving}
-        saveError={saveError}
-        onRawValueChange={(key, value) => {
-          setDraftSettings((current) =>
-            current.map((draft) => (draft.key === key ? { ...draft, rawValue: value } : draft)),
-          );
-        }}
-        onTextFieldChange={(key, field, value) => {
-          setDraftSettings((current) =>
-            current.map((draft) => (draft.key === key ? { ...draft, [field]: value } : draft)),
-          );
-        }}
-        onClose={() => {
-          setDraftSettings(createSettingDrafts(settingsSnapshot.editableSettings));
-          setIsEditOpen(false);
-          setSaveError('');
-        }}
-        onSubmit={handleSaveSettings}
-      />
+      {isSettingsReady && sanitizedInputs ? (
+        <EditSettingsModal
+          isOpen={isEditOpen}
+          draftSettings={draftSettings}
+          settingsSnapshot={settingsSnapshot}
+          tripInputs={sanitizedInputs}
+          isSaving={isSaving}
+          saveError={saveError}
+          onRawValueChange={(key, value) => {
+            setDraftSettings((current) =>
+              current.map((draft) => (draft.key === key ? { ...draft, rawValue: value } : draft)),
+            );
+          }}
+          onTextFieldChange={(key, field, value) => {
+            setDraftSettings((current) =>
+              current.map((draft) => (draft.key === key ? { ...draft, [field]: value } : draft)),
+            );
+          }}
+          onClose={() => {
+            setDraftSettings(createSettingDrafts(settingsSnapshot.editableSettings));
+            setIsEditOpen(false);
+            setSaveError('');
+          }}
+          onSubmit={handleSaveSettings}
+        />
+      ) : null}
     </>
   );
 }
