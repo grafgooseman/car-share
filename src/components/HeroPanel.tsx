@@ -32,6 +32,7 @@ export function HeroPanel({ carName, content, imageSrc, riskImageSrc }: HeroPane
         />
         <div className="risk-note">
           <img
+            className="risk-note__image"
             src={riskImageSrc}
             alt="Example of why a risk cost is included"
             width={320}
@@ -39,7 +40,7 @@ export function HeroPanel({ carName, content, imageSrc, riskImageSrc }: HeroPane
             loading="lazy"
             decoding="async"
           />
-          <div>
+          <div className="risk-note__copy">
             <strong>{content.riskTitle}</strong>
             <p>{content.riskBody}</p>
           </div>

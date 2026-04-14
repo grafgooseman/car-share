@@ -165,11 +165,12 @@ button {
 
 .risk-note {
   position: static;
-  width: min(100%, 420px);
+  width: min(100%, 560px);
   display: grid;
-  grid-template-columns: 96px 1fr;
-  gap: 16px;
-  padding: 18px;
+  grid-template-columns: minmax(128px, 168px) minmax(0, 1fr);
+  align-items: center;
+  gap: 18px;
+  padding: 10px 12px;
   border-radius: 22px;
   background: rgba(255, 214, 10, 0.96);
   color: #171717;
@@ -178,15 +179,31 @@ button {
   align-self: end;
 }
 
-.risk-note img {
-  width: 96px;
-  height: 96px;
-  object-fit: cover;
+.risk-note__image {
+  width: 100%;
+  max-width: 168px;
+  height: auto;
+  max-height: 112px;
+  object-fit: contain;
+  object-position: center;
   border-radius: 16px;
+  justify-self: center;
+}
+
+.risk-note__copy {
+  min-width: 0;
+}
+
+.risk-note__copy strong {
+  display: block;
+  font-size: 1.05rem;
+  line-height: 1.15;
 }
 
 .risk-note p {
-  margin: 4px 0 0;
+  margin: 8px 0 0;
+  font-size: 1rem;
+  line-height: 1.4;
   color: rgba(23, 23, 23, 0.8);
 }
 
@@ -207,7 +224,7 @@ button {
   background: linear-gradient(135deg, rgba(255, 214, 10, 0.98), rgba(250, 196, 0, 0.95)), var(--panel);
 }
 
-.calculator-shell > :last-child {
+.calculator-shell> :last-child {
   grid-column: 1 / -1;
 }
 
@@ -665,7 +682,7 @@ button {
   gap: 16px;
 }
 
-.settings-group + .settings-group {
+.settings-group+.settings-group {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding-top: 20px;
 }
@@ -717,6 +734,7 @@ button {
     opacity: 0;
     transform: translateY(16px) scale(0.98);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -724,6 +742,7 @@ button {
 }
 
 @media (max-width: 1024px) {
+
   .hero-panel,
   .calculator-shell,
   .result-layout {
@@ -748,6 +767,27 @@ button {
   }
 }
 
+@media (min-width: 721px) and (max-width: 1180px) {
+  .hero-panel {
+    grid-template-columns: minmax(0, 1fr) minmax(420px, 0.92fr);
+  }
+
+  .hero-visual {
+    padding-inline: 20px 28px;
+  }
+
+  .risk-note {
+    width: min(100%, 600px);
+    grid-template-columns: minmax(140px, 184px) minmax(0, 1fr);
+    padding: 22px 24px;
+  }
+
+  .risk-note__image {
+    max-width: 184px;
+    max-height: 118px;
+  }
+}
+
 @media (max-width: 900px) {
   .input-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -768,7 +808,7 @@ button {
     align-items: stretch;
   }
 
-  .section-actions > * {
+  .section-actions>* {
     width: 100%;
   }
 
@@ -839,9 +879,11 @@ button {
     gap: 10px;
   }
 
-  .risk-note img {
+  .risk-note__image {
     width: min(100%, 220px);
     height: auto;
+    max-width: none;
+    max-height: none;
     justify-self: center;
     border-radius: 16px;
   }
@@ -894,6 +936,7 @@ button {
 }
 
 @media (max-width: 480px) {
+
   .hero-copy h1,
   .section-heading h2,
   .modal-head h2,
@@ -931,7 +974,7 @@ button {
     width: min(100%, 340px);
   }
 
-  .risk-note img {
+  .risk-note__image {
     width: min(100%, 240px);
   }
 }
