@@ -75,7 +75,7 @@ function App() {
   const [inputDraft, setInputDraft] = useState<TripInputDraft>(EMPTY_TRIP_DRAFT);
   const [adminSession, setAdminSession] = useState<AdminSession>(EMPTY_ADMIN_SESSION);
   const [settingsStatus, setSettingsStatus] = useState<LoadStatus>('loading');
-  const [adminSessionStatus, setAdminSessionStatus] = useState<LoadStatus>('loading');
+  const [adminSessionStatus, setAdminSessionStatus] = useState<LoadStatus>('ready');
   const [explainKey, setExplainKey] = useState<ExplainKey | null>(null);
   const [draftSettings, setDraftSettings] = useState<AppSettingDraft[]>([]);
   const [loadError, setLoadError] = useState('');
@@ -126,7 +126,9 @@ function App() {
     let isActive = true;
 
     const loadAdminSessionState = async (recoverLocalSession: boolean) => {
-      setAdminSessionStatus('loading');
+      if (!recoverLocalSession) {
+        setAdminSessionStatus('loading');
+      }
 
       try {
         const nextAdminSession = await withTimeout(

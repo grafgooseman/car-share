@@ -2,7 +2,40 @@ import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 import type { AdminSession, AdminUser, AppSetting, AppSettingUpdate } from '../types';
 import { getSupabaseBrowserClient } from './supabase';
 
-const ADMIN_AUTH_REDIRECT_URL = 'https://grafgooseman.github.io/car-share/';
+const DEFAULT_PUBLIC_SITE_ORIGIN = 'https://grafgooseman.github.io';
+
+const normalizeBaseUrl = (value: string) => {
+  const trimmed = value.trim();
+  if (!trimmed || trimmed === '/') {
+    return '/';
+  }
+
+  const withLeadingSlash = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+  return withLeadingSlash.endsWith('/') ? withLeadingSlash : `${withLeadingSlash}/`;
+};
+
+const normalizeAbsoluteUrl = (value: string) => {
+  const url = new URL(value);
+  url.pathname = normalizeBaseUrl(url.pathname);
+  url.search = '';
+  url.hash = '';
+  return url.toString();
+};
+
+export const resolveAdminAuthRedirectUrl = (options?: {
+  siteUrl?: string;
+  baseUrl?: string;
+  defaultOrigin?: string;
+}) => {
+  const siteUrl = options?.siteUrl ?? import.meta.env.VITE_PUBLIC_SITE_URL;
+  if (siteUrl) {
+    return normalizeAbsoluteUrl(siteUrl);
+  }
+
+  const baseUrl = options?.baseUrl ?? import.meta.env.BASE_URL;
+  const defaultOrigin = options?.defaultOrigin ?? DEFAULT_PUBLIC_SITE_ORIGIN;
+  return new URL(normalizeBaseUrl(baseUrl), normalizeAbsoluteUrl(defaultOrigin)).toString();
+};
 
 type AppSettingRow = {
   key: AppSetting['key'];
@@ -188,7 +221,7 @@ export const signUpAdmin = async (input: {
     email: input.email,
     password: input.password,
     options: {
-      emailRedirectTo: ADMIN_AUTH_REDIRECT_URL,
+      emailRedirectTo: resolveAdminAuthRedirectUrl(),
       data: {
         signup_kind: 'admin',
         admin_signup_code: input.code,

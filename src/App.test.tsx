@@ -101,6 +101,16 @@ describe('App', () => {
     expect(screen.queryByText('Loading calculator settings')).not.toBeInTheDocument();
   });
 
+  it('keeps edit access neutral while the initial admin session check is still pending', () => {
+    fetchPublicSettings.mockImplementation(() => new Promise(() => undefined));
+    fetchAdminSession.mockImplementation(() => new Promise(() => undefined));
+
+    render(<App />);
+
+    expect(screen.getByRole('button', { name: 'Edit constants' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Checking admin access...' })).not.toBeInTheDocument();
+  });
+
   it('lets users type inputs before settings load and preserves them once settings resolve', async () => {
     const user = userEvent.setup();
     const deferredSettings = createDeferred<typeof seededAppSettings>();
