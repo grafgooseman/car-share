@@ -1,4 +1,5 @@
 import type { FormEvent } from 'react';
+import { preventScrollValueChange } from '../lib/input';
 import {
   applyDraftsToSettings,
   createSettingsSnapshot,
@@ -100,6 +101,7 @@ export function EditSettingsModal({
                         type={draft.valueType === 'text' ? 'text' : 'number'}
                         step={draft.valueType === 'integer' ? '1' : 'any'}
                         value={draft.rawValue}
+                        onWheel={draft.valueType === 'text' ? undefined : preventScrollValueChange}
                         onChange={(event) => onRawValueChange(draft.key, event.target.value)}
                       />
                     </label>

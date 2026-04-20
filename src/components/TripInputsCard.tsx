@@ -1,4 +1,5 @@
 import type { TripInputDraft } from '../types';
+import { preventScrollValueChange } from '../lib/input';
 
 type TripInputsCardProps = {
   inputs: TripInputDraft;
@@ -71,6 +72,7 @@ export function TripInputsCard({
               max={String(MAX_KILOMETER_SLIDER)}
               step="10"
               value={String(getSliderValue(inputs.kilometers))}
+              onWheel={preventScrollValueChange}
               onChange={(event) => onChange('kilometers', event.target.value)}
             />
             <input
@@ -79,6 +81,7 @@ export function TripInputsCard({
               inputMode="decimal"
               step="0.1"
               value={inputs.kilometers}
+              onWheel={preventScrollValueChange}
               onChange={(event) => onChange('kilometers', event.target.value)}
             />
           </div>
@@ -91,6 +94,7 @@ export function TripInputsCard({
             inputMode="decimal"
             step="0.1"
             value={inputs.days}
+            onWheel={preventScrollValueChange}
             onChange={(event) => onChange('days', event.target.value)}
           />
         </label>
@@ -100,6 +104,7 @@ export function TripInputsCard({
             <select
               aria-label="Persons in car"
               value={inputs.personsInCar}
+              onWheel={preventScrollValueChange}
               onChange={(event) => onChange('personsInCar', event.target.value)}
             >
               {Array.from({ length: maxPersonsInCar }, (_, index) => {
@@ -120,6 +125,7 @@ export function TripInputsCard({
               min="1"
               step="1"
               value={inputs.personsInCar}
+              onWheel={preventScrollValueChange}
               onChange={(event) => onChange('personsInCar', event.target.value)}
             />
           )}
